@@ -13,7 +13,7 @@ Lift_Drag_Ratio = 8;
 %Architecture
 Storage_Power_Density = 200*3600;
 Storage_Peak_Output = 100e3;
-Stroage_Capacity = 7.2e6;
+Storage_Capacity = 7.2e6;
 Motor_Power = 600e3;
 %% END OF USER INPUTS
 
@@ -26,7 +26,7 @@ Baseline_Aircraft.L_D_Ratio = Lift_Drag_Ratio;
 
 %Create Architecture
 Architecture = Flight_System();
-Architecture.Max_Capacity = Stroage_Capacity;
+Architecture.Max_Capacity = Storage_Capacity;
 Architecture.Motor_Power = Motor_Power;
 Run
 Step

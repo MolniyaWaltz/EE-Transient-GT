@@ -65,6 +65,6 @@ Senario.Step_Points = ...
      20.02, 50,  1e5, 293;...
      30.00, 50,  1e5, 293];
 
- Senario.Step_Senario = zeros(WS.Step_time/WS.delta_T + 1, 5);
+ Senario1.Step_Senario = zeros(WS.Step_time/WS.delta_T + 1, 5);
  Senario.Step_fill(WS, HP);
  
