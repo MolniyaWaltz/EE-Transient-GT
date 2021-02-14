@@ -42,7 +42,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
     mdot2_t = State_t(6);
     T04_t = State_t(7);
     %Get Engine Conditions
-    Conditions = Senario1.Step_Senario((WS.Sim_point - 1),:);
+    Conditions = this_scenario.Step_Scenario((WS.Sim_point - 1),:);
     Fg_demand = Architecture.T_Step(WS.Sim_point);
     P02_prev = P02_t;
     T02_prev = T02_t;
@@ -249,9 +249,9 @@ end
 POS_up = 100* (Peak_T/max(Architecture.T_Step)) -100;
 POS_down =100- 100* (MINI_T/min(Architecture.T_Step));
 
-[~,INX_P_up]=max(Senario1.Step_Points(:,2));
-times = Senario1.Step_Points(:,1);
-holding = Senario1.Step_Points(:,2);
+[~,INX_P_up]=max(this_scenario.Step_Points(:,2));
+times = this_scenario.Step_Points(:,1);
+holding = this_scenario.Step_Points(:,2);
 [~,INX_P_down]=min(holding(INX_P_up:end));
 
 T_up_upper = max(Architecture.T_Step) * 1.01;

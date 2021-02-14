@@ -34,7 +34,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
     mdot2_t = State_t(6);
     T04_t = State_t(7);
     %Get Engine Conditions
-    Conditions = Senario1.Point_Senario((WS.Sim_point - 1),:);
+    Conditions = this_scenario.Point_Scenario((WS.Sim_point - 1),:);
     NH_demand = Conditions(3);
     P02_prev = P02_t;
     T02_prev = T02_t;
@@ -51,7 +51,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
         T_Levels(WS.Sim_point) = Fg;
     else
         if (WS.Sim_point + 10) < WS.total_sim_points
-            if abs(NH_demand - Senario1.Point_Senario((WS.Sim_point + 10),3))>100
+            if abs(NH_demand - this_scenario.Point_Scenario((WS.Sim_point + 10),3))>100
                 T_Levels(WS.Sim_point) = Fg;
             else
                 T_Levels(WS.Sim_point) = NaN;
@@ -166,7 +166,7 @@ end
 T_Levels = fillmissing(T_Levels,'next');
 
 for i = [1:1:WS.total_sim_points-1]
-    if Senario1.Point_Senario(i,3) ~= Senario1.Point_Senario(i+1,3)
+    if this_scenario.Point_Scenario(i,3) ~= this_scenario.Point_Scenario(i+1,3)
         T_Levels(i) = NaN;
     end
 end
@@ -230,7 +230,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
     mdot2_t = State_t(6);
     T04_t = State_t(7);
     %Get Engine Conditions
-    Conditions = Senario1.Point_Senario((WS.Sim_point - 1),:);
+    Conditions = this_scenario.Point_Scenario((WS.Sim_point - 1),:);
     Fg_demand = Match(WS.Sim_point,8);
     P02_prev = P02_t;
     T02_prev = T02_t;

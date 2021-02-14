@@ -31,7 +31,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
     mdot2_t = State_t(6);
     T04_t = State_t(7);
     %Get Engine Conditions
-    Conditions = Senario1.Step_Senario((WS.Sim_point - 1),:);
+    Conditions = this_scenario.Step_Scenario((WS.Sim_point - 1),:);
     NH_demand = Conditions(3);
     P02_prev = P02_t;
     T02_prev = T02_t;
@@ -48,7 +48,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
         T_Step(WS.Sim_point) = Fg;
     else
         if (WS.Sim_point + 10) < WS.Step_time/WS.delta_T + 1
-            if abs(NH_demand - Senario1.Step_Senario((WS.Sim_point + 10),3))>100
+            if abs(NH_demand - this_scenario.Step_Scenario((WS.Sim_point + 10),3))>100
                 T_Step(WS.Sim_point) = Fg;
             else
                 T_Step(WS.Sim_point) = NaN;
@@ -163,7 +163,7 @@ end
 T_Step = fillmissing(T_Step,'next');
 
 for i = [1:1:WS.Step_time/WS.delta_T]
-    if Senario1.Step_Senario(i,3) ~= Senario1.Step_Senario(i+1,3)
+    if this_scenario.Step_Scenario(i,3) ~= this_scenario.Step_Scenario(i+1,3)
         T_Step(i) = NaN;
     end
 end

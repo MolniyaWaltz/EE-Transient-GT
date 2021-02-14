@@ -1,7 +1,8 @@
-%% Genetic Algothirm Optimisation Trials
+%% Genetic Algorithm Optimisation Trials
 % Alex Pynn Individual Project 2020
 
 % Script to run trial motors and 10Kg of batterys: Expected iridis run time = 6.5 hours
+% For 10 generations with 1000 members.
 
 %% START OF USER INPUTS
 %Genetic Algorithm Parameters

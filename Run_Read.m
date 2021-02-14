@@ -45,7 +45,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
     mdot2_t = State_t(6);
     T04_t = State_t(7);
     %Get Engine Conditions
-    Conditions = Senario.Point_Senario((WS.Sim_point - 1),:);
+    Conditions = Scenario.Point_Scenario((WS.Sim_point - 1),:);
     Fg_demand = Architecture.T_Profile(WS.Sim_point);
     P02_prev = P02_t;
     T02_prev = T02_t;
