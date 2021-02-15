@@ -151,14 +151,16 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
 
         %Get new T7
         delta_T7 = Control.demand(WS, NH_t,NH_demand);
-        T07_now = T04_t + delta_T4;
+        T07_now = T06 + delta_T7;
         T07_now = min(max(T04_now,(T03+100)),2200);
         %Get P07
         P07_now = Combustor.SetP4(mdot2_t,T07_now);
 
+        %Write a setP7 for modelling reheat pressure drop
+
         %Calculate thrust
         if Reheat_Active == 1
-            Vj = (2*Cpm*T06*(1-(P02_t/P06)^((WS.gamma_turb-1)/(WS.gamma_turb))))^0.5;
+            Vj = (2*Cpm*T07*(1-(P02_t/P07_now)^((WS.gamma_turb-1)/(WS.gamma_turb))))^0.5;
             Fg = Vj*mdot2_t;
             %Calculate mf_dot
             f = (T04_now - T03)/((LCV/WS.cpe)-T04_now);
