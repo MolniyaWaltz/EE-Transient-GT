@@ -154,6 +154,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
         %Get new T7
         
         delta_T7 = Control.demand(WS, NH_t, NH_demand);
+        %% Need new control.demand function for reheat
         T07_now = T06 + delta_T7;
         T07_now = min(max(T07_now,(T06+100)),2200);
         %Get P07
@@ -167,11 +168,12 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
         mdot_f = mdot_f/(Error_T4/100 + 1);
         
         %Calculate mf_dot of afterburner
-        f = (T07_now - T06)/((LCV/WS.cpa)-T07_now);
-        mdot_f = f * mdot2_now;
+        f_reheat = (T07_now - T06)/((LCV/WS.cpa)-T07_now);
+        mdot_f_reheat = f * mdot2_now;
         %Fuel flow correction factor
-        Error_T4 = -0.0186 * T07_now + 36.503;
-        mdot_f = mdot_f/(Error_T7/100 + 1);
+        Error_T7 = -0.0186 * T07_now + 36.503;
+        mdot_f_reheat = mdot_f/(Error_T7/100 + 1);
+        %% This may need to be changed. 
         
         %Write a setP7 for modelling reheat pressure drop
         
@@ -187,6 +189,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
         %Store state for next iteration
         WS.Tracker(WS.Sim_point,:) = ...
             [NH_now NL_now P02_t P025_now mdot3_now mdot2_now T04_now, Fg, mdot_f];
+        %% Need to add mdot_f_reheat to workspace simpoints.
     end
 end
 
