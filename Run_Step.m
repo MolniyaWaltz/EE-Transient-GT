@@ -1,5 +1,5 @@
 function [Ts_up,POS_up,Tp_up,Ts_down,POS_down,Tp_down] = Run_Step...
-    (Architecture,E_Control, Fan_Map, HPC_Map, Combustor,Bypass)
+    (Architecture,E_Control, Fan_Map, HPC_Map, Combustor,Bypass,Afterburner)
 %% Function to run a Step Profile under the control principles of
 %% E_Control
 
@@ -24,7 +24,7 @@ Fg = Architecture.T_Step(1);
 
 %% Load Simulation workspace
 % Enter script of simulations workspace below
-Engine1
+Engine
 simulation_setup
 
 %% Run simulation
@@ -108,7 +108,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
     if abs(Fg - Fg_demand) > Fg_demand*0.02
         transpoint = transpoint + 1;
     end
-    %Check if we are in steady state or transiants 
+    %Check if we are in steady state or Transient
     steady_state = abs(NHdot) < 0.01 &&...
         abs(NLdot) < 0.01 &&...
         abs(Fg - Fg_demand) < 1 &&...
@@ -234,12 +234,31 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
     P06 = P026;
     Cpm = (WS.cpe + BPR * WS.cp)/(1+BPR);
     T06 = (WS.cpe*T05+BPR*WS.cp*T025)/((1+BPR)*Cpm);
+    %%Afterburning functionality added by MolniyaWaltz
+
+    %Get new T7
+
+    delta_T7 = Control.demand(WS, NH_t, NH_demand);
+    T07_now = T06 + delta_T7;
+    T07_now = min(max(T07_now,(T06+100)),2200);
+    %Get P07
+    P07_now = Afterburner.SetP7(mdot2_t,T07_now);
+    
+    %% May need new correction for mf_dot of afterburner.
+
+    %Write a setP7 for modelling reheat pressure drop
+
     %Calculate thrust
-    Vj = (2*Cpm*T06*(1-(P02_t/P06)^((WS.gamma_turb-1)/(WS.gamma_turb))))^0.5;
-    Fg = Vj*mdot2_t;
+    if Afterburner.IsActive == 1
+        Vj = (2*Cpm*T07_now*(1-(P02_t/P07_now)^((WS.gamma_reheat-1)/(WS.gamma_reheat))))^0.5;
+        Fg = Vj*mdot2_t;
+    else
+        Vj = (2*Cpm*T06*(1-(P02_t/P06)^((WS.gamma_turb-1)/(WS.gamma_turb))))^0.5;
+        Fg = Vj*mdot2_t;
+    end
     %Store state for next iteration
     WS.Tracker(WS.Sim_point,:) = ...
-        [NH_now NL_now P02_t P025_now mdot3_now mdot2_now T04_now, Fg, 0];
+        [NH_now NL_now P02_t P025_now mdot3_now mdot2_now T04_now, Fg, 0 0];
     end
 end
 

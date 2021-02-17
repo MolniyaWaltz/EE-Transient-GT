@@ -67,3 +67,4 @@ LP.N_Max = 18000;
 Afterburner = Afterburner();
 Afterburner.WrootTonP = 1.15e-3;
 Afterburner.Pressure_Loss = 0.05;
+Afterburner.IsActive = 1;

@@ -15,8 +15,8 @@ Lift_Drag_Ratio = 8;
 Storage_Power_Density = 200*3600;
 Storage_Peak_Output = 100e3;
 Storage_Capacity = 7.2e6;
-Reheat_Active = 0;
 Motor_Power = 600e3;
+Reheating = 1;
 %% END OF USER INPUTS
 
 load('LowBPRFan.mat');
@@ -64,9 +64,9 @@ for generation = [1:1:GA.Generations]
     Gen_cost = zeros(GA.Generations,2);
     
     parfor trial = [1:1:GA.Members]
-        [fuel_mass,Transient_Time] = Run_Trial(Architecture,GA.Trials(trial,generation).Value, Fan_Map, HPC_Map,Combustor,Bypass);
+        [fuel_mass,Transient_Time] = Run_Trial(Architecture,GA.Trials(trial,generation).Value, Fan_Map, HPC_Map,Combustor,Bypass,Afterburner);
         [Ts_up,POS_up,Tp_up,Ts_down,POS_down,Tp_down] = Run_Step...
-        (Architecture,GA.Trials(trial,generation).Value, Fan_Map, HPC_Map, Combustor,Bypass);
+        (Architecture,GA.Trials(trial,generation).Value, Fan_Map, HPC_Map, Combustor,Bypass, Afterburner);
         Gen_Results(trial,:)= [trial,fuel_mass,Transient_Time,Ts_up,POS_up,Tp_up,Ts_down,POS_down,Tp_down];
         cost(trial,generation) = fuel_mass+POS_up + POS_down + 10*(Transient_Time+Ts_up+Tp_up+Ts_down+Tp_down);
         Gen_cost(trial,:) = [cost(trial,generation),trial];

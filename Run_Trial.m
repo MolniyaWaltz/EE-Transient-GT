@@ -1,4 +1,4 @@
-function [fuel_mass,Transiant_Time] = Run_Trial(Architecture,E_Control, Fan_Map, HPC_Map, Combustor,Bypass)
+function [fuel_mass,Transient_Time] = Run_Trial(Architecture,E_Control, Fan_Map, HPC_Map, Combustor,Bypass,Afterburner)
 %% Function to run a mission Profile under the control principles of
 %% E_Control
 
@@ -22,7 +22,7 @@ Fg = Architecture.T_Profile(1);
 
 %% Load Simulation workspace
 % Enter script of simulations workspace below
-Engine1
+Engine
 simulation_setup
 
 %% Run simulation
@@ -106,7 +106,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
     if abs(Fg - Fg_demand) > Fg_demand*0.02
         transpoint = transpoint + 1;
     end
-    %Check if we are in steady state or transiants 
+    %Check if we are in steady state or Transients 
     steady_state = abs(NHdot) < 0.01 &&...
         abs(NLdot) < 0.01 &&...
         abs(Fg - Fg_demand) < 1 &&...
@@ -130,7 +130,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
     %Look up fan beta
     if (NL_Normal<0.4) || (NL_Normal>1.07)
         fuel_mass = 9999999999;
-        Transiant_Time = 9999999999;
+        Transient_Time = 9999999999;
         return;
     end
     beta_Fan = min(Fan.beta_ID(NL_Normal,Fan_PR),1);
@@ -149,7 +149,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
     %Calculate the beta value of the HPC
     if (NH_Normal<0.5) || (NH_Normal>1.05)
         fuel_mass = 9999999999;
-        Transiant_Time = 9999999999;
+        Transient_Time = 9999999999;
         return;
     end
     beta_HPC = min(HPC.beta_ID(NH_Normal,PR_HPC),1);
@@ -208,7 +208,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
     %Read the parameters from the compressor map
     if (NL_Normal<0.4) || (NL_Normal>1.07)
         fuel_mass = 9999999999;
-        Transiant_Time = 9999999999;
+        Transient_Time = 9999999999;
         return;
     end
     [~,mdot2_now,Fan_PR_now] = Fan.Lookup(NL_Normal,beta_Fan);
@@ -220,23 +220,49 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
     P06 = P026;
     Cpm = (WS.cpe + BPR * WS.cp)/(1+BPR);
     T06 = (WS.cpe*T05+BPR*WS.cp*T025)/((1+BPR)*Cpm);
-    %Calculate thrust
-    Vj = (2*Cpm*T06*(1-(P02_t/P06)^((WS.gamma_turb-1)/(WS.gamma_turb))))^0.5;
-    Fg = Vj*mdot2_t;
-    %Calculate mf_dot
+    %%Afterburning functionality added by MolniyaWaltz
+
+    %Get new T7
+        
+    delta_T7 = Control.demand(WS, NH_t, NH_demand);
+    T07_now = T06 + delta_T7;
+    T07_now = min(max(T07_now,(T06+100)),2200);
+    %Get P07
+    P07_now = Afterburner.SetP7(mdot2_t,T07_now);
+
+    %Calculate mf_dot of main combustion chamber
     f = (T04_now - T03)/((LCV/WS.cpe)-T04_now);
     mdot_f = f * mdot3_now;
     %Fuel flow correction factor
     Error_T4 = -0.0186 * T04_now + 36.503;
     mdot_f = mdot_f/(Error_T4/100 + 1);
+        
+    %Calculate mf_dot of afterburner
+    f_reheat = (T07_now - T06)/((LCV/(Cpm * WS.cpe/WS.cp))-T07_now);
+    mdot_f_reheat = f * mdot2_now;
+    %Fuel flow correction factor
+    Error_T7 = -0.0186 * T07_now + 36.503;
+    mdot_f_reheat = mdot_f_reheat/(Error_T7/100 + 1);
+    %% May need new correction for mf_dot of afterburner.
+        
+    %Write a setP7 for modelling reheat pressure drop
+        
+    %Calculate thrust
+    if Afterburner.IsActive == 1
+    Vj = (2*Cpm*T07_now*(1-(P02_t/P07_now)^((WS.gamma_reheat-1)/(WS.gamma_reheat))))^0.5;
+        Fg = Vj*mdot2_t;
+    else
+        Vj = (2*Cpm*T06*(1-(P02_t/P06)^((WS.gamma_turb-1)/(WS.gamma_turb))))^0.5;
+        Fg = Vj*mdot2_t;
+    end
     %Store state for next iteration
     WS.Tracker(WS.Sim_point,:) = ...
-        [NH_now NL_now P02_t P025_now mdot3_now mdot2_now T04_now, Fg, mdot_f];
+        [NH_now NL_now P02_t P025_now mdot3_now mdot2_now T04_now, Fg, mdot_f mdot_f_reheat];
     end
 end
 
 fuel_mass = sum(WS.Tracker(:,9)) * WS.delta_T;
-Transiant_Time = WS.delta_T*transpoint;
+Transient_Time = WS.delta_T*transpoint;
 
 end
 

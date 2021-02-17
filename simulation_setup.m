@@ -2,6 +2,7 @@
 WS = Workspace();
 WS.gamma_comp = 1.4;
 WS.gamma_turb = 1.3;
+WS.gamma_reheat = WS.gamma_turb * WS.gamma_turb / WS.gamma_comp;
 WS.cp = 1005;
 WS.cpe = 1300;
 
@@ -15,7 +16,7 @@ WS.Sim_point = 1;
 
 %Simulation tracker
 total_sim_points = WS.Sim_time/WS.delta_T + 1;
-WS.Tracker = zeros(total_sim_points, 9);
+WS.Tracker = zeros(total_sim_points, 10);
 WS.total_sim_points = total_sim_points;
 
 %Set initial values
@@ -26,7 +27,10 @@ P025_0 = 4.5e5;
 mdot3_0 = 71.43;
 mdot2_0 = 100;
 T04_0 = 1700;
-WS.Tracker(1,:) = [NH_0 NL_0 P02_0 P025_0 mdot3_0 mdot2_0 T04_0,0,0];
+Fg = 0;
+mdot_f = 0;
+mdot_f_reheat = 0;
+WS.Tracker(1,:) = [NH_0 NL_0 P02_0 P025_0 mdot3_0 mdot2_0 T04_0 Fg mdot_f mdot_f_reheat];
 
 %% Set up Scenario
 this_scenario = Scenario();
