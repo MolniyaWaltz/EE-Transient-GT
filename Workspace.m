@@ -11,7 +11,6 @@ classdef Workspace
         cpe
         gamma_comp
         gamma_turb
-        gamma_reheat
         total_sim_points
     end
     

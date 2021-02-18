@@ -1,4 +1,4 @@
-function [Ts_up,POS_up,Tp_up,Ts_down,POS_down,Tp_down] = Run_Step...
+function [Ts_up,POS_up,Tp_up,Ts_down,POS_down,Tp_down] = Run_Step_APU...
     (Architecture,E_Control, Fan_Map, HPC_Map, Combustor,Bypass)
 %% Function to run a Step Profile under the control principles of
 %% E_Control
@@ -77,7 +77,8 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
         P_Storage_Norm = min(P_Storage_Norm,0);
     end    
     %Calculate the storage power
-    P_Storage = P_Storage_Norm * 2 * Architecture.Motor_Power;
+    P_Storage_Norm = 1/6;
+    P_Storage = (1/3) * Architecture.Motor_Power;
     %Get mode and normalised power of the motor generators
     %If storage is refilling:
     if (P_Storage_Norm*2) < 0
@@ -102,8 +103,8 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
     W_HPelec = P_HP_Norm * Architecture.Motor_Power;
     W_LPelec = P_LP_Norm * Architecture.Motor_Power;
     %Calculate the energy taken from the storage 
-    E_storage = P_Storage*WS.delta_T;
-    Architecture.StorageChange(E_storage,WS);
+    %E_storage = P_Storage*WS.delta_T;
+    %Architecture.StorageChange(E_storage,WS);
     %Are we in steady state?
     if abs(Fg - Fg_demand) > Fg_demand*0.02
         transpoint = transpoint + 1;
@@ -249,9 +250,9 @@ end
 POS_up = 100* (Peak_T/max(Architecture.T_Step)) -100;
 POS_down =100- 100* (MINI_T/min(Architecture.T_Step));
 
-[~,INX_P_up]=max(Senario1.Step_Points(:,2));
-times = Senario1.Step_Points(:,1);
-holding = Senario1.Step_Points(:,2);
+[~,INX_P_up]=max(Senario.Step_Points(:,2));
+times = Senario.Step_Points(:,1);
+holding = Senario.Step_Points(:,2);
 [~,INX_P_down]=min(holding(INX_P_up:end));
 
 T_up_upper = max(Architecture.T_Step) * 1.01;
@@ -287,4 +288,3 @@ Ts_down=max(step_down_times)- times(INX_P_down+INX_P_up-2);
 % hold off
 
 end
-

@@ -35,4 +35,5 @@ Architecture.Setup(Baseline_Aircraft);
 [fuel_mass,Transiant_Time] = Run_Read(Architecture,C, Fan_Map, HPC_Map,Combustor,Bypass)
 [Ts_up,POS_up,Tp_up,Ts_down,POS_down,Tp_down] = Run_Step...
         (Architecture,C, Fan_Map, HPC_Map, Combustor,Bypass)
-cost = fuel_mass + POS_up + POS_down + 10*(Transiant_Time+Ts_up+Tp_up+Ts_down+Tp_down)
+cost= fuel_mass + POS_up + POS_down + 10*(Transiant_Time+Ts_up+Tp_up+Ts_down+Tp_down)
+

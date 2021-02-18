@@ -1,11 +1,10 @@
-function [Ts_up,POS_up,Tp_up,Ts_down,POS_down,Tp_down] = Run_Step...
-    (Architecture,E_Control, Fan_Map, HPC_Map, Combustor,Bypass)
-%% Function to run a Step Profile under the control principles of
+function [fuel_mass,Transiant_Time] = Run_Trial_APU(Architecture,E_Control, Fan_Map, HPC_Map, Combustor,Bypass)
+%% Function to run a mission Profile under the control principles of
 %% E_Control
 
 %Set the current storage capacity to its maximum
 Architecture.Current_Capacity = Architecture.Max_Capacity;
-TPrev=0;
+
 %Set initial parameters to arbatery initail values
 P02_t = 0;
 T02_t = 0;
@@ -18,9 +17,8 @@ W_HPelec = 0;
 W_LPelec = 0;
 W_HPC=99999999999;
 transpoint=0;
-SSTimes = [0];
 %Set t=0 thrust target
-Fg = Architecture.T_Step(1);
+Fg = Architecture.T_Profile(1);
 
 %% Load Simulation workspace
 % Enter script of simulations workspace below
@@ -30,7 +28,7 @@ simulation_setup
 %% Run simulation
 skipped = 0;
 % Loop though time points
-for t = [WS.delta_T:WS.delta_T:WS.Step_time]
+for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
     %Step simulation point
     WS.Sim_point = WS.Sim_point + 1;
     %Read previus time points
@@ -42,8 +40,8 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
     mdot2_t = State_t(6);
     T04_t = State_t(7);
     %Get Engine Conditions
-    Conditions = Senario1.Step_Senario((WS.Sim_point - 1),:);
-    Fg_demand = Architecture.T_Step(WS.Sim_point);
+    Conditions = Senario.Point_Senario((WS.Sim_point - 1),:);
+    Fg_demand = Architecture.T_Profile(WS.Sim_point);
     P02_prev = P02_t;
     T02_prev = T02_t;
     P02_t = Conditions(4);
@@ -53,7 +51,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
     Prev_EHP = W_HPelec;
     Prev_ELP = W_LPelec;
     %Normalise parameters 
-    T_norm = Fg/max(Architecture.T_Step);
+    T_norm = Fg/max(Architecture.T_Profile);
     Et_norm = (Fg_demand - Fg)/Fg_demand;
     NH_norm = NH_t/HP.N_Max;
     NL_norm = NL_t/LP.N_Max;
@@ -75,9 +73,10 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
     end
     if Architecture.Current_Capacity == 0
         P_Storage_Norm = min(P_Storage_Norm,0);
-    end    
+    end
     %Calculate the storage power
-    P_Storage = P_Storage_Norm * 2 * Architecture.Motor_Power;
+    P_Storage_Norm = 1/6;
+    P_Storage = (1/3) * Architecture.Motor_Power;
     %Get mode and normalised power of the motor generators
     %If storage is refilling:
     if (P_Storage_Norm*2) < 0
@@ -102,8 +101,8 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
     W_HPelec = P_HP_Norm * Architecture.Motor_Power;
     W_LPelec = P_LP_Norm * Architecture.Motor_Power;
     %Calculate the energy taken from the storage 
-    E_storage = P_Storage*WS.delta_T;
-    Architecture.StorageChange(E_storage,WS);
+    %E_storage = P_Storage*WS.delta_T;
+    %Architecture.StorageChange(E_storage,WS);
     %Are we in steady state?
     if abs(Fg - Fg_demand) > Fg_demand*0.02
         transpoint = transpoint + 1;
@@ -131,12 +130,8 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
     NL_Normal = (NL_t/LP.N_Max)/(T02_t/Fan.T0_DP)^0.5;
     %Look up fan beta
     if (NL_Normal<0.4) || (NL_Normal>1.07)
-        Ts_up= 9999999999;
-        POS_up= 9999999999;
-        Tp_up= 9999999999;
-        Ts_down= 9999999999;
-        POS_down= 9999999999;
-        Tp_down= 9999999999;
+        fuel_mass = 9999999999;
+        Transiant_Time = 9999999999;
         return;
     end
     beta_Fan = min(Fan.beta_ID(NL_Normal,Fan_PR),1);
@@ -154,12 +149,8 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
     NH_Normal = (NH_t/HP.N_Max)/(T025/HPC.T0_DP)^0.5;
     %Calculate the beta value of the HPC
     if (NH_Normal<0.5) || (NH_Normal>1.05)
-        Ts_up= 9999999999;
-        POS_up= 9999999999;
-        Tp_up= 9999999999;
-        Ts_down= 9999999999;
-        POS_down= 9999999999;
-        Tp_down= 9999999999;
+        fuel_mass = 9999999999;
+        Transiant_Time = 9999999999;
         return;
     end
     beta_HPC = min(HPC.beta_ID(NH_Normal,PR_HPC),1);
@@ -217,12 +208,8 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
     NL_Normal = (NL_now/LP.N_Max)/(T02_t/Fan.T0_DP)^0.5;
     %Read the parameters from the compressor map
     if (NL_Normal<0.4) || (NL_Normal>1.07)
-        Ts_up= 9999999999;
-        POS_up= 9999999999;
-        Tp_up= 9999999999;
-        Ts_down= 9999999999;
-        POS_down= 9999999999;
-        Tp_down= 9999999999;
+        fuel_mass = 9999999999;
+        Transiant_Time = 9999999999;
         return;
     end
     [~,mdot2_now,Fan_PR_now] = Fan.Lookup(NL_Normal,beta_Fan);
@@ -237,54 +224,19 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
     %Calculate thrust
     Vj = (2*Cpm*T06*(1-(P02_t/P06)^((WS.gamma_turb-1)/(WS.gamma_turb))))^0.5;
     Fg = Vj*mdot2_t;
+    %Calculate mf_dot
+    f = (T04_now - T03)/((LCV/WS.cpe)-T04_now);
+    mdot_f = f * mdot3_now;
+    %Fuel flow correction factor
+    Error_T4 = -0.0186 * T04_now + 36.503;
+    mdot_f = mdot_f/(Error_T4/100 + 1);
     %Store state for next iteration
     WS.Tracker(WS.Sim_point,:) = ...
-        [NH_now NL_now P02_t P025_now mdot3_now mdot2_now T04_now, Fg, 0];
+        [NH_now NL_now P02_t P025_now mdot3_now mdot2_now T04_now, Fg, mdot_f];
     end
 end
 
-[Peak_T, INX_up] = max(WS.Tracker(1:WS.Sim_point,8));
-[MINI_T, INX_down] = min(WS.Tracker(100:WS.Sim_point,8));
-
-POS_up = 100* (Peak_T/max(Architecture.T_Step)) -100;
-POS_down =100- 100* (MINI_T/min(Architecture.T_Step));
-
-[~,INX_P_up]=max(Senario1.Step_Points(:,2));
-times = Senario1.Step_Points(:,1);
-holding = Senario1.Step_Points(:,2);
-[~,INX_P_down]=min(holding(INX_P_up:end));
-
-T_up_upper = max(Architecture.T_Step) * 1.01;
-T_up_lower = max(Architecture.T_Step) * 0.99;
-T_down_upper = min(Architecture.T_Step) * 1.01;
-T_down_lower = min(Architecture.T_Step) * 0.99;
-
-Tp_up = ((INX_up) * WS.delta_T)-times(INX_P_up);
-Tp_down = ((98+INX_down) * WS.delta_T) - times(INX_P_down+INX_P_up-2);
-
-%cal interpepts
-step_up_times = [];
-step_down_times = [];
-for point = [2:1:WS.Sim_point]
-    if (WS.Tracker(point-1,8)<T_up_lower && WS.Tracker(point,8)>T_up_lower) || (WS.Tracker(point-1,8)>T_up_upper && WS.Tracker(point,8)<T_up_upper)
-        step_up_times = [step_up_times,point* WS.delta_T];
-    end
-    if (WS.Tracker(point-1,8)<T_down_lower && WS.Tracker(point,8)>T_down_lower) || (WS.Tracker(point-1,8)>T_down_upper && WS.Tracker(point,8)<T_down_upper)
-        step_down_times = [step_down_times,point* WS.delta_T];
-    end
-end
-
-Ts_up=max(step_up_times)-times(INX_P_up);
-Ts_down=max(step_down_times)- times(INX_P_down+INX_P_up-2);
-
- 
-% hold on
-% plot([0:WS.delta_T:WS.Step_time],WS.Tracker(1:WS.Sim_point,8));
-% plot([0,30],[T_up_upper,T_up_upper]);
-% plot([0,30],[T_up_lower,T_up_lower]);
-% plot([0,30],[T_down_upper,T_down_upper]);
-% plot([0,30],[T_down_lower,T_down_lower]);
-% hold off
+fuel_mass = sum(WS.Tracker(:,9)) * WS.delta_T;
+Transiant_Time = WS.delta_T*transpoint;
 
 end
-

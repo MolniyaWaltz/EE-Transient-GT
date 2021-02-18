@@ -31,13 +31,13 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
     mdot2_t = State_t(6);
     T04_t = State_t(7);
     %Get Engine Conditions
-    Conditions = this_scenario.Step_Scenario((WS.Sim_point - 1),:);
+    Conditions = Senario1.Step_Senario((WS.Sim_point - 1),:);
     NH_demand = Conditions(3);
     P02_prev = P02_t;
     T02_prev = T02_t;
     P02_t = Conditions(4);
     T02_t = Conditions(5);
-    %Check if we are in steady state or transient
+    %Check if we are in steady state or transiants 
     steady_state = abs(NHdot) < 1 &&...
         abs(NLdot) < 1 &&...
         abs(NH_t - NH_demand) < NH_demand*0.01 &&...
@@ -48,7 +48,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
         T_Step(WS.Sim_point) = Fg;
     else
         if (WS.Sim_point + 10) < WS.Step_time/WS.delta_T + 1
-            if abs(NH_demand - this_scenario.Step_Scenario((WS.Sim_point + 10),3))>100
+            if abs(NH_demand - Senario1.Step_Senario((WS.Sim_point + 10),3))>100
                 T_Step(WS.Sim_point) = Fg;
             else
                 T_Step(WS.Sim_point) = NaN;
@@ -145,51 +145,25 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
     P06 = P026;
     Cpm = (WS.cpe + BPR * WS.cp)/(1+BPR);
     T06 = (WS.cpe*T05+BPR*WS.cp*T025)/((1+BPR)*Cpm);
-        %%Afterburning functionality added by MolniyaWaltz
-
-    %Get new T7
-
-    delta_T7 = Control.demand(WS, NH_t, NH_demand);
-    T07_now = T06 + delta_T7;
-    T07_now = min(max(T07_now,(T06+100)),2200);
-    %Get P07
-    P07_now = Afterburner.SetP7(mdot2_t,T07_now);
-
-    %Calculate mf_dot of main combustion chamber
+    %Calculate thrust
+    Vj = (2*Cpm*T06*(1-(P02_t/P06)^((WS.gamma_turb-1)/(WS.gamma_turb))))^0.5;
+    Fg = Vj*mdot2_t;
+    %Calculate mf_dot
     f = (T04_now - T03)/((LCV/WS.cpe)-T04_now);
     mdot_f = f * mdot3_now;
     %Fuel flow correction factor
     Error_T4 = -0.0186 * T04_now + 36.503;
     mdot_f = mdot_f/(Error_T4/100 + 1);
-
-    %Calculate mf_dot of afterburner
-    f_reheat = (T07_now - T06)/((LCV/(Cpm * WS.cpe/WS.cp))-T07_now);
-    mdot_f_reheat = f * mdot2_now;
-    %Fuel flow correction factor
-    Error_T7 = -0.0186 * T07_now + 36.503;
-    mdot_f_reheat = mdot_f_reheat/(Error_T7/100 + 1);
-    %% May need new correction for mf_dot of afterburner.
-
-    %Write a setP7 for modelling reheat pressure drop
-
-    %Calculate thrust
-    if Afterburner.IsActive == 1
-        Vj = (2*Cpm*T07_now*(1-(P02_t/P07_now)^((WS.gamma_reheat-1)/(WS.gamma_reheat))))^0.5;
-        Fg = Vj*mdot2_t;
-    else
-        Vj = (2*Cpm*T06*(1-(P02_t/P06)^((WS.gamma_turb-1)/(WS.gamma_turb))))^0.5;
-        Fg = Vj*mdot2_t;
-    end
     %Store state for next iteration
     WS.Tracker(WS.Sim_point,:) = ...
-        [NH_now NL_now P02_t P025_now mdot3_now mdot2_now T04_now Fg mdot_f mdot_f_reheat];
+        [NH_now NL_now P02_t P025_now mdot3_now mdot2_now T04_now, Fg, mdot_f];
     end
 end
 
 T_Step = fillmissing(T_Step,'next');
 
 for i = [1:1:WS.Step_time/WS.delta_T]
-    if this_scenario.Step_Scenario(i,3) ~= this_scenario.Step_Scenario(i+1,3)
+    if Senario1.Step_Senario(i,3) ~= Senario1.Step_Senario(i+1,3)
         T_Step(i) = NaN;
     end
 end
