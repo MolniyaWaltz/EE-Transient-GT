@@ -145,7 +145,8 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
     P06 = P026;
     Cpm = (WS.cpe + BPR * WS.cp)/(1+BPR);
     T06 = (WS.cpe*T05+BPR*WS.cp*T025)/((1+BPR)*Cpm);
-        %%Afterburning functionality added by MolniyaWaltz
+    
+    %%Afterburning functionality added by MolniyaWaltz
 
     %Get new T7
 
@@ -157,8 +158,8 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
 
     %Calculate mf_dot of main combustion chamber
     f = (T04_now - T03)/((LCV/WS.cpe)-T04_now);
+    %Fuel flow correction factor4_now);
     mdot_f = f * mdot3_now;
-    %Fuel flow correction factor
     Error_T4 = -0.0186 * T04_now + 36.503;
     mdot_f = mdot_f/(Error_T4/100 + 1);
 

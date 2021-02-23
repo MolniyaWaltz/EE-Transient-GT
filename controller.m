@@ -26,7 +26,7 @@ classdef controller < handle
         end
         
         function delta_T4 = demand(obj,WS,NH_t,NH_demand)
-            % Calculate Burner exit tempreature to bring error to 0
+            % Calculate burner exit temp. to bring spool speed error to 0
             i = WS.Sim_point;
             obj.Error(i+1) = NH_demand - NH_t;
             obj.Prop(i+1) = obj.Error(i+1);% error of proportional term
@@ -37,6 +37,25 @@ classdef controller < handle
             PID = obj.P*obj.Prop(i) + obj.I*obj.sum_int(i) +...
                 obj.D*obj.Dirv(i);% the three PID terms
              delta_T4 = PID*0.005;
+        end
+        
+        % delta_T7 added by MolniyaWaltz
+        
+        function delta_T7 = thrustdemand(obj, WS, Fg_t, Fg_demand)
+            % Calculate afterburner exit temp. to bring thrust error to 0
+            i = WS.Sim_point;
+            obj.Error(i+1) = Fg_demand - Fg_t;
+            
+            obj.Prop(i+1) = obj.Error(i+1);
+            obj.Dirv(i+1)  = (obj.Error(i+1) - obj.Error(i))/WS.delta_T; 
+            obj.Inte(i+1)  = (obj.Error(i+1) + obj.Error(i))*WS.delta_T/2; 
+            obj.sum_int(i+1) = sum(obj.Inte(max(1,i-50):i)); 
+    
+            PID = obj.P*obj.Prop(i) + obj.I*obj.sum_int(i) +...
+                obj.D*obj.Dirv(i);
+            delta_T7 = PID*0.005;            
+            
+            % Run_step uses: Fg_demand = Architecture.T_Step(WS.Sim_point);
         end
     end
 end

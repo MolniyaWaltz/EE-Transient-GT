@@ -63,7 +63,7 @@ LP.Friction = -1e2;
 LP.N_design = 12000;
 LP.N_Max = 18000;
 
-% Afterburner
+% Afterburner (added by MW)
 Afterburner = Afterburner();
 Afterburner.WrootTonP = 1.15e-3;
 Afterburner.Pressure_Loss = 0.05;

@@ -220,11 +220,12 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
     P06 = P026;
     Cpm = (WS.cpe + BPR * WS.cp)/(1+BPR);
     T06 = (WS.cpe*T05+BPR*WS.cp*T025)/((1+BPR)*Cpm);
+    
     %%Afterburning functionality added by MolniyaWaltz
 
     %Get new T7
         
-    delta_T7 = Control.demand(WS, NH_t, NH_demand);
+    delta_T7 = Control.thrustdemand(WS, Fg, Fg_demand);
     T07_now = T06 + delta_T7;
     T07_now = min(max(T07_now,(T06+100)),2200);
     %Get P07
@@ -238,18 +239,22 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
     mdot_f = mdot_f/(Error_T4/100 + 1);
         
     %Calculate mf_dot of afterburner
-    f_reheat = (T07_now - T06)/((LCV/(Cpm * WS.cpe/WS.cp))-T07_now);
-    mdot_f_reheat = f * mdot2_now;
-    %Fuel flow correction factor
-    Error_T7 = -0.0186 * T07_now + 36.503;
-    mdot_f_reheat = mdot_f_reheat/(Error_T7/100 + 1);
-    %% May need new correction for mf_dot of afterburner.
-        
+    if Afterburner.IsActive == 1
+        f_reheat = (T07_now - T06)/((LCV/(Cpm * WS.cpe/WS.cp))-T07_now);
+        mdot_f_reheat = f * mdot2_now;
+        %Fuel flow correction factor
+        Error_T7 = -0.0186 * T07_now + 36.503;
+        mdot_f_reheat = mdot_f_reheat/(Error_T7/100 + 1);
+        %% May need new correction for mf_dot of afterburner.
+    else
+        mdot_f_reheat = 0;
+    end
+
     %Write a setP7 for modelling reheat pressure drop
-        
+
     %Calculate thrust
     if Afterburner.IsActive == 1
-    Vj = (2*Cpm*T07_now*(1-(P02_t/P07_now)^((WS.gamma_reheat-1)/(WS.gamma_reheat))))^0.5;
+        Vj = (2*Cpm*T07_now*(1-(P02_t/P07_now)^((WS.gamma_reheat-1)/(WS.gamma_reheat))))^0.5;
         Fg = Vj*mdot2_t;
     else
         Vj = (2*Cpm*T06*(1-(P02_t/P06)^((WS.gamma_turb-1)/(WS.gamma_turb))))^0.5;

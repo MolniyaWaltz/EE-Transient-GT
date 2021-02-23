@@ -57,11 +57,11 @@ for generation = [1:1:GA.Generations]
     Gen_cost = zeros(GA.Generations,2);
     
     parfor trial = [1:1:GA.Members]
-        [fuel_mass,Transiant_Time] = Run_Trial(Architecture,GA.Trials(trial,generation).Value, Fan_Map, HPC_Map,Combustor,Bypass);
+        [fuel_mass,Transient_Time] = Run_Trial(Architecture,GA.Trials(trial,generation).Value, Fan_Map, HPC_Map,Combustor,Bypass,Afterburner);
         [Ts_up,POS_up,Tp_up,Ts_down,POS_down,Tp_down] = Run_Step...
-        (Architecture,GA.Trials(trial,generation).Value, Fan_Map, HPC_Map, Combustor,Bypass);
-        Gen_Results(trial,:)= [trial,fuel_mass,Transiant_Time,Ts_up,POS_up,Tp_up,Ts_down,POS_down,Tp_down];
-        cost(trial,generation) = fuel_mass + POS_up + POS_down + 10*(Transiant_Time+Ts_up+Tp_up+Ts_down+Tp_down);
+        (Architecture,GA.Trials(trial,generation).Value, Fan_Map, HPC_Map, Combustor,Bypass, Afterburner);
+        Gen_Results(trial,:)= [trial,fuel_mass,Transient_Time,Ts_up,POS_up,Tp_up,Ts_down,POS_down,Tp_down];
+        cost(trial,generation) = fuel_mass + POS_up + POS_down + 10*(Transient_Time+Ts_up+Tp_up+Ts_down+Tp_down);
         Gen_cost(trial,:) = [cost(trial,generation),trial];
     end
     
@@ -103,4 +103,4 @@ end
 save('costs','cost');
 save('trials', 'GA');
 %GA.Track(:,1,1) = fuel_flows_track;
-%GA.Track(:,1,2) = Transiant_track;
+%GA.Track(:,1,2) = Transient_track;

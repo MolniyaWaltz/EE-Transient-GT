@@ -151,7 +151,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
 
     %%Afterburning functionality added by MolniyaWaltz
 
-    %Get new T7
+    %Get new T7 - may need new delta T7 such that T7 meets thrust demands.
 
     delta_T7 = Control.demand(WS, NH_t, NH_demand);
     T07_now = T06 + delta_T7;
@@ -167,12 +167,16 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
     mdot_f = mdot_f/(Error_T4/100 + 1);
 
     %Calculate mf_dot of afterburner
-    f_reheat = (T07_now - T06)/((LCV/(Cpm * WS.cpe/WS.cp))-T07_now);
-    mdot_f_reheat = f * mdot2_now;
-    %Fuel flow correction factor
-    Error_T7 = -0.0186 * T07_now + 36.503;
-    mdot_f_reheat = mdot_f_reheat/(Error_T7/100 + 1);
-    %% May need new correction for mf_dot of afterburner.
+    if Afterburner.IsActive == 1
+        f_reheat = (T07_now - T06)/((LCV/(Cpm * WS.cpe/WS.cp))-T07_now);
+        mdot_f_reheat = f * mdot2_now;
+        %Fuel flow correction factor
+        Error_T7 = -0.0186 * T07_now + 36.503;
+        mdot_f_reheat = mdot_f_reheat/(Error_T7/100 + 1);
+        %% May need new correction for mf_dot of afterburner.
+    else
+        mdot_f_reheat = 0;
+    end
 
     %Write a setP7 for modelling reheat pressure drop
 
@@ -187,8 +191,6 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
     %Store state for next iteration
     WS.Tracker(WS.Sim_point,:) = ...
         [NH_now NL_now P02_t P025_now mdot3_now mdot2_now T04_now Fg mdot_f mdot_f_reheat];
-    %% Need to add mdot_f_reheat to workspace simpoints.
-    %  ^ Done!
     end
 end
 

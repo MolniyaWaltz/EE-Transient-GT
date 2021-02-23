@@ -2,7 +2,7 @@
 % Alex Pynn Individual Project 2020
 
 % Script to run trial motors and 10Kg of batterys: Expected iridis run time = 6.5 hours
-% For 10 generations with 1000 members.
+% (For 10 generations with 1000 members. -MW)
 
 %% START OF USER INPUTS
 %Genetic Algorithm Parameters
@@ -16,7 +16,6 @@ Storage_Power_Density = 200*3600;
 Storage_Peak_Output = 100e3;
 Storage_Capacity = 7.2e6;
 Motor_Power = 600e3;
-Reheating = 1;
 %% END OF USER INPUTS
 
 load('LowBPRFan.mat');

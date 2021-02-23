@@ -6,7 +6,7 @@ function [Ts_up,POS_up,Tp_up,Ts_down,POS_down,Tp_down] = Run_Step...
 %Set the current storage capacity to its maximum
 Architecture.Current_Capacity = Architecture.Max_Capacity;
 TPrev=0;
-%Set initial parameters to arbatery initail values
+%Set initial parameters to arbitrary initail values
 P02_t = 0;
 T02_t = 0;
 T03 = 0;
@@ -234,11 +234,12 @@ for t = [WS.delta_T:WS.delta_T:WS.Step_time]
     P06 = P026;
     Cpm = (WS.cpe + BPR * WS.cp)/(1+BPR);
     T06 = (WS.cpe*T05+BPR*WS.cp*T025)/((1+BPR)*Cpm);
+    
     %%Afterburning functionality added by MolniyaWaltz
 
     %Get new T7
 
-    delta_T7 = Control.demand(WS, NH_t, NH_demand);
+    delta_T7 = Control.thrustdemand(WS, Fg, Fg_demand);
     T07_now = T06 + delta_T7;
     T07_now = min(max(T07_now,(T06+100)),2200);
     %Get P07
