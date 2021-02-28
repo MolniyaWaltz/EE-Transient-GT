@@ -225,7 +225,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
 
     %Get new T7
         
-    Control.demand(WS, NH_t, NH_demand);
+    delta_T7 = Control.demand(WS, NH_t, NH_demand);
     T07_now = T06 + delta_T7;
     T07_now = min(max(T07_now,(T06+100)),2200);
     %Get P07
