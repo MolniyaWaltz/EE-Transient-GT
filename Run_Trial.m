@@ -225,7 +225,7 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
 
     %Get new T7
         
-    delta_T7 = Control.thrustdemand(WS, Fg, Fg_demand);
+    Control.demand(WS, NH_t, NH_demand);
     T07_now = T06 + delta_T7;
     T07_now = min(max(T07_now,(T06+100)),2200);
     %Get P07
@@ -241,10 +241,10 @@ for t = [WS.delta_T:WS.delta_T:WS.Sim_time]
     %Calculate mf_dot of afterburner
     if Afterburner.IsActive == 1
         f_reheat = (T07_now - T06)/((LCV/(Cpm * WS.cpe/WS.cp))-T07_now);
-        mdot_f_reheat = f * mdot2_now;
+        mdot_f_reheat = f_reheat * mdot2_now;
         %Fuel flow correction factor
-        Error_T7 = -0.0186 * T07_now + 36.503;
-        mdot_f_reheat = mdot_f_reheat/(Error_T7/100 + 1);
+        %Error_T7 = -0.0186 * T07_now + 36.503;
+        %mdot_f_reheat = mdot_f_reheat/(Error_T7/100 + 1);
         %% May need new correction for mf_dot of afterburner.
     else
         mdot_f_reheat = 0;
