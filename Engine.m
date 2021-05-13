@@ -53,7 +53,7 @@ HP = Shaft();
 HP.Inertia = 1.5;
 HP.Friction = -1e2;
 HP.N_design = 25000;
-HP.N_Max = 27000;
+HP.N_Max = 30000; % Max spool speed modified by MW.
 HP.N_Idle = 0.7 *HP.N_Max;
 
 % LP Shaft
@@ -67,4 +67,4 @@ LP.N_Max = 18000;
 Afterburner = Afterburner();
 Afterburner.WrootTonP = 1.15e-3;
 Afterburner.Pressure_Loss = 0.05;
-Afterburner.IsActive = 1;
+Afterburner.IsActive = 0;

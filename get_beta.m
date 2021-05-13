@@ -69,7 +69,7 @@ else
     PR_at_Speed_High = [];
     k=2;
     for beta = [1:1:Num_Beta_lines]
-         PR_at_Speed_High(beta) = Map(line, k);
+         PR_at_Speed_High(beta) = Map(line, k); % Line is key, k is value range
          k = k +1;
          if k ==6
              k = 1;

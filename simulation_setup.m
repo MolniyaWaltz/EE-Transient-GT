@@ -1,10 +1,9 @@
 %% Set up simulation workspace
 WS = Workspace();
 WS.gamma_comp = 1.4;
-WS.gamma_turb = 1.3;
-WS.gamma_reheat = WS.gamma_turb * WS.gamma_turb / WS.gamma_comp;
 WS.cp = 1005;
-WS.cpe = 1300;
+WS.A_air = [0.992313, 0.236688, -1.852148, 6.083152, -8.893933, 7.097112, -3.234725, 0.794571, -0.081873];
+WS.A_fuel = [-0.718874, 8.747481, -15.863157, 17.254096, -10.233795, 3.081778, -0.361112, -0.003919, 0.0];
 
 %Fuel Values
 LCV = 43.124e6;

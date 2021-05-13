@@ -8,11 +8,10 @@ classdef Workspace
         Step_time
         Tracker
         cp
-        cpe
         gamma_comp
-        gamma_turb
-        gamma_reheat
         total_sim_points
+        A_air
+        A_fuel
     end
     
 end
